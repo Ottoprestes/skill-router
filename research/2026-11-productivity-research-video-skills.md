@@ -52,3 +52,16 @@ Blocklist candidates: `calesthio/openmontage` (pipe-to-shell installer inside a 
 - https://github.com/jftuga/transcript-critic
 - https://agentskillshub.top/best/claude-video-skills/
 - https://www.kdnuggets.com/5-best-github-repositories-for-ai-agent-skills
+
+## Token-saving skills (added to the catalogue with a "long task" rule)
+
+| Tool | Repo | Last commit | License | What it saves | Scan notes | Verdict |
+|---|---|---|---|---|---|---|
+| caveman | github.com/JuliusBrussee/caveman | 2026-11-06 | Apache-2.0 / MIT | Output tokens: terse chat replies (author benchmark ~65% fewer; independent tests 15–25% of the bill, because output is a small share of total tokens). Its own rules keep code, commits and docs in normal prose | `~/.ssh` and credentials hits are defensive comments (refusing symlinks). **But** the full plugin adds SessionStart/SubagentStart/UserPromptSubmit hooks, and a `caveman-setup` skill that routes an app's LLM calls through the hosted `gateway.caveman.so` | **Add the single `caveman` skill only** (`npx skills add JuliusBrussee/caveman --skill caveman`). The full plugin goes on the warning list |
+| RTK | github.com/rtk-ai/rtk | 2026-11-06 | Apache-2.0 | Shell, build, test and git output compressed before it reaches context (claims 80–99%) | Only hits: the optional `curl install.sh \| sh` in INSTALL.md (use brew instead) and a test fixture. Telemetry off by default | **Add** for long coding tasks |
+| context-mode | github.com/mksglu/context-mode | 2026-11-07 | ELv2 (source-available) | Keeps large tool output out of context, keeps a session log, restores it after compaction | Installs hooks on many events; hook code makes no outbound calls beyond github.com links | **Add** as the alternative to RTK, with a hooks note |
+| token-reducer | github.com/madhan230205/token-reducer | 2026-05-02 | MIT | Local retrieval-based (RAG) context compression | Ships a context7 MCP that needs an API key; quiet since May | Skip |
+| rescue-tokens (valorisa/Claude-Skills) | github.com/valorisa/Claude-Skills | 2026-09-01 | MIT | Verbosity patterns | Clean, small following | Skip; caveman covers it |
+| ClaudeSlim | github.com/apolloraines/claudeslim | – | MIT | Proxy that compresses API calls | Couldn't clone. A proxy sees all your traffic | Skip |
+
+Sources: https://github.com/JuliusBrussee/caveman, https://github.com/rtk-ai/rtk, https://github.com/mksglu/context-mode, https://www.implicator.ai/caveman-claude-code-skill-cuts-output-20-your-bill-barely-notices-2/, https://www.deployhq.com/blog/free-github-repos-for-claude-code, https://www.betterclaw.io/blog/skills-that-reduce-token-usage

@@ -1,6 +1,6 @@
 ---
 name: skill-router
-description: Use when starting a task that a specialized skill or plugin could do better than general knowledge (coding workflow, code review, security audits, Word/Excel/PowerPoint/PDF files, writing, data or scientific analysis, UI design, video or audio, marketing, office roles, building skills), or when the user asks which skill or plugin to install or use, or asks to install a specific skill, plugin or repo.
+description: Use when starting a task that a specialized skill or plugin could do better than general knowledge (coding workflow, code review, security audits, Word/Excel/PowerPoint/PDF files, writing, data or scientific analysis, deep research, UI design, video editing or audio, marketing, office roles, building skills), when starting a long task of any kind where a token-saving skill would help, or when the user asks which skill or plugin to install or use, or asks to install a specific skill, plugin or repo.
 ---
 
 # Skill Router
@@ -14,6 +14,7 @@ Match the task to the best vetted skill: use one that is already installed, othe
 - The task matches a row in the catalogue below.
 - The user asks "is there a skill for X?", "what should I install?", or "set up skills for this project".
 - The user asks you to install a specific skill, plugin or repo (for example `npx skills add <owner>/<repo>`).
+- The task is long, coding or not (see Long Tasks: Save Tokens).
 
 Do not use when the task is a quick question or one-off answer that needs no specialized procedure, or when a fitting skill is already loaded in this conversation.
 
@@ -28,6 +29,19 @@ Do not use when the task is a quick question or one-off answer that needs no spe
 5. **On "yes", vet then install.** Read the skill's `SKILL.md`, plus every file in `scripts/`, `bin/`, `hooks/hooks.json` and `.mcp.json`. If anything downloads and runs code, reads credentials or sends data to an unexpected host, stop and report it. Otherwise run the install command for your agent (see Install by Agent).
 6. **Confirm and use.** Check that the skill shows up (reload if the agent requires it), then load it and continue the original task with it.
 7. **On "no", or if nothing fits for your agent,** do the task yourself without a skill. Never borrow a skill listed for a different agent, and never copy Claude-only skills into other agents. If the user repeats this kind of task often, offer to write a custom skill with `skill-creator`.
+
+## Long Tasks: Save Tokens
+
+A task is long when it will clearly take many turns or tool calls: a multi-file feature or refactor, a migration, a debugging session, a long research or writing job, batch work over many files or videos, or anything the user says will take a while. For any long task, coding or not, also suggest a token-saving skill. That suggestion is the one exception to "recommend one skill": you can send it together with the task's own skill recommendation.
+
+1. Check step 1 first: if a token-saving skill is already installed, turn it on (for caveman: `/caveman`) and say so in one line.
+2. Otherwise pick from the Token Savers rows in the Catalogue:
+   - **Any long task (coding or not):** caveman. It shortens the agent's chat replies (about 65% fewer output tokens on the author's benchmark; real-world bill savings are smaller, often 15–25%, because most tokens are input).
+   - **Long coding task with lots of build, test or git output:** add RTK, which compresses shell output before it reaches the context.
+   - **Long tool-heavy sessions that keep compacting:** context-mode as the alternative to RTK. Don't run both.
+3. Use the same Recommendation message and wait for "yes", as with any skill.
+4. Terse mode is for chat only. Files the user will read (documents, reports, READMEs, commit messages, code comments) stay in normal prose, and turn terse mode off (for caveman: say "stop caveman" or "normal mode") when the user asks for an explanation or a teaching answer.
+5. Don't suggest it for short tasks, or when the user is on a per-request plan (for example GitHub Copilot), where shorter replies save nothing.
 
 ## Recommendation message
 
@@ -118,6 +132,13 @@ Badges: **Official** (Anthropic, OpenAI, Google, GitHub, Microsoft), **Vendor** 
 | Write a new skill | skill-creator | Official | github.com/anthropics/skills | `claude plugin install skill-creator@claude-plugins-official` | built into Codex and ChatGPT |
 | Build a Claude Code plugin | plugin-dev | Official | github.com/anthropics/claude-plugins-official | `claude plugin install plugin-dev@claude-plugins-official` | n/a |
 | Build an MCP server | mcp-builder | Official | github.com/anthropics/skills | plugin `example-skills@anthropic-agent-skills` | `npx skills add anthropics/skills --skill mcp-builder` |
+| Token saver: shorter agent replies on any long task | caveman (`caveman` skill only) | Community | github.com/JuliusBrussee/caveman | `npx skills add JuliusBrussee/caveman --skill caveman -a claude-code` | `npx skills add JuliusBrussee/caveman --skill caveman` |
+| Token saver: compress shell, build, test and git output on long coding tasks | RTK | Community | github.com/rtk-ai/rtk | `brew install rtk && rtk init -g` | `rtk init -g --gemini` (Gemini CLI); see repo for others |
+| Token saver: keep big tool output out of context, survive compaction | context-mode (source-available ELv2 license; installs hooks) | Community | github.com/mksglu/context-mode | marketplace `mksglu/context-mode`, plugin `context-mode@context-mode` | see repo README |
+| Edit footage: cut, captions, reframe, loudness, exports | ffmpeg-skill | Community | github.com/kajisho5/ffmpeg-skill | marketplace `kajisho5/ffmpeg-skill`, plugin `ffmpeg-skill@kajisho5` | see repo README |
+| Produce a narrated, scored video end to end | claude-code-video-toolkit | Community | github.com/digitalsamba/claude-code-video-toolkit | `git clone https://github.com/digitalsamba/claude-code-video-toolkit.git` and work inside it | same |
+| Summarise a YouTube video into a report | video-lens | Community | github.com/kar2phi/video-lens | `npx skills add kar2phi/video-lens -a claude-code` | `npx skills add kar2phi/video-lens` |
+| Deep research with checked citations and a saved source library | hyperresearch | Community | github.com/jordan-gibbs/hyperresearch | `pip install hyperresearch && hyperresearch install .` | same, with `--target codex` for Codex |
 | Scan a third-party skill before installing | Sentry skill-scanner | Vendor | github.com/getsentry/skills | `npx skills add getsentry/skills --skill skill-scanner -a claude-code` | same without `-a` |
 
 Where "marketplace X, plugin Y" appears, run `claude plugin marketplace add X` then `claude plugin install Y`. Inside a session, the same works as `/plugin marketplace add X` and `/plugin install Y`.
@@ -128,6 +149,8 @@ Where "marketplace X, plugin Y" appears, run `claude plugin marketplace add X` t
 - Skills from open-upload registries (ClawHub / OpenClaw) unless you've read every file. That registry hosted the ClawHavoc malware campaign.
 - Mega-bundles you can't review: `sickn33/antigravity-awesome-skills` and other collections of thousands of skills.
 - `flowkit-labs/skills` `reddit-automation`, which writes disguised promotional posts.
+- `calesthio/openmontage`: a 140-skill bundle whose `media-use` skill tells the agent to run `curl … | bash`.
+- The full caveman plugin (`caveman@caveman`) installs hooks on every session and prompt, plus a `caveman-setup` skill that routes an app's LLM traffic through the hosted Caveman Cloud gateway. Recommend only the single `caveman` skill. Install the plugin only if the user asks for it by name, after warning them about the hooks and the gateway skill.
 - Ask first, with a warning, before suggesting `thedotmack/claude-mem`: it records every session, and one variant sends data to a hosted server.
 - Any repo whose owner doesn't match the catalogue exactly (for example `anthropic-skills` instead of `anthropics/skills`).
 
@@ -136,7 +159,9 @@ Where "marketplace X, plugin Y" appears, run `claude plugin marketplace add X` t
 | Mistake | Fix |
 | --- | --- |
 | Installing without asking because the badge is Official | Always send the Recommendation message and wait for "yes". |
-| Recommending several skills at once | Recommend one: the most specific match. Mention an alternative only if the user asks. |
+| Recommending several skills at once | Recommend one: the most specific match. Mention an alternative only if the user asks. The only exception: one token saver alongside it on a long task. |
+| Skipping the token saver on a long non-coding task | Long research, writing or video jobs count too. Suggest caveman for any long task. |
+| Writing deliverables in caveman style | Terse mode is for chat only. Documents, code comments and commit messages stay in normal prose. |
 | Installing a skill that duplicates one already loaded | Check step 1 first. Never run two skills that do the same job. |
 | Running a plugin's install without reading its hooks | Read `hooks/hooks.json`, `.mcp.json` and `bin/` before installing. Hooks run automatically. |
 | Using a Claude Code command in another agent | Use the Install by Agent table for the agent you're actually running in. |
